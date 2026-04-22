@@ -1,0 +1,26 @@
+{
+  "name": "numero-uno-audit-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Audit generation API (Google Places + Claude)",
+  "main": "server.js",
+  "type": "commonjs",
+  "author": "Numero Uno",
+  "license": "ISC",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "check:accuracy": "node accuracy-check.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "node-fetch": "^3.3.2",
+    "nodemailer": "^8.0.5",
+    "razorpay": "^2.9.6"
+  }
+}

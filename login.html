@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin Login | Numero Uno Marketing</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blk:#05080a;--wht:#ffffff;--lime:#20c997;--lime2:#19a97d;
+  --g1:#0a1118;--g2:#05080a;--mt:#8899a6;
+  --bd:rgba(32, 201, 151, .2);--tx:#ffffff;--tx2:#8899a6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--blk);
+  background-image: radial-gradient(circle at 50% 50%, rgba(32, 201, 151, 0.05) 0%, transparent 70%);
+  color:var(--tx);
+  font-family:'Nunito',sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding:20px;
+}
+.login-card{
+  background:var(--g1);
+  border:1px solid var(--bd);
+  backdrop-filter: blur(10px);
+  padding:40px;
+  border-radius:24px;
+  width:100%;
+  max-width:400px;
+  text-align:center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.logo{font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:800;color:var(--wht);margin-bottom:30px}
+.logo b{color:var(--lime)}
+h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;margin-bottom:10px;color:var(--wht)}
+p{font-size:14px;color:var(--mt);margin-bottom:30px}
+
+.form-group{margin-bottom:20px;text-align:left}
+label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;color:var(--mt);margin-bottom:8px;letter-spacing:1px}
+input{
+  width:100%;
+  background:var(--g2);
+  border:1px solid var(--bd);
+  padding:14px 16px;
+  border-radius:12px;
+  color:var(--wht);
+  font-family:inherit;
+  font-size:15px;
+  transition:all 0.2s;
+}
+input:focus{outline:none;border-color:var(--lime);box-shadow:0 0 10px rgba(212,175,55,0.1)}
+
+.login-btn{
+  width:100%;
+  background:var(--lime);
+  color:var(--blk);
+  border:none;
+  padding:16px;
+  border-radius:12px;
+  font-weight:800;
+  font-size:16px;
+  cursor:pointer;
+  transition:all 0.2s;
+  margin-top:10px;
+}
+.login-btn:hover{background:var(--lime2);transform:translateY(-2px);box-shadow:0 8px 25px rgba(212,175,55,0.2)}
+.error-msg{color:#FF5C5C;font-size:13px;margin-top:15px;display:none}
+
+.back-link{display:block;margin-top:30px;font-size:13px;color:var(--mt);text-decoration:none;transition:color 0.2s}
+.back-link:hover{color:var(--lime)}
+</style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="logo">Numero <b>Uno</b></div>
+  <h1>Admin Portal</h1>
+  <p>Please enter your credentials to continue</p>
+  
+  <div class="form-group">
+    <label>Username</label>
+    <input type="text" id="username" placeholder="Enter username">
+  </div>
+  
+  <div class="form-group">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Enter password">
+  </div>
+  
+  <button class="login-btn" onclick="handleLogin()">Login to Dashboard</button>
+  <div id="error-msg" class="error-msg">❌ Invalid credentials. Please try again.</div>
+  
+  <a href="index.html" class="back-link">← Back to website</a>
+</div>
+
+<script>
+function handleLogin() {
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  const err = document.getElementById('error-msg');
+  
+  // Check localStorage for updated credentials, fallback to defaults
+  const ADMIN_KEY = 'NUMER_ADMIN_CONFIG';
+  const def = { username: 'admin', password: 'numero-uno' };
+  const admin = JSON.parse(localStorage.getItem(ADMIN_KEY) || JSON.stringify(def));
+
+  if(u === admin.username && p === admin.password) {
+    sessionStorage.setItem('adminAuth', 'true');
+    location.href = 'admin/';
+  } else {
+    err.style.display = 'block';
+  }
+
+}
+
+// Allow Enter key to submit
+document.addEventListener('keypress', function (e) {
+  if (e.key === 'Enter') handleLogin();
+});
+</script>
+
+</body>
+</html>

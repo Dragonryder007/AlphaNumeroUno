@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Admin Dashboard | Numero Uno Marketing</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Nunito:wght@400;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --blk: #05080a;
+      --wht: #ffffff;
+      --lime: #20c997;
+      --lime2: #19a97d;
+      --g1: #0a1118;
+      --g2: #05080a;
+      --mt: #8899a6;
+      --bd: rgba(32, 201, 151, .2);
+      --tx: #ffffff;
+      --tx2: #8899a6;
+      --sidebar-w: 260px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      background: var(--blk);
+      color: var(--tx);
+      font-family: 'Nunito', sans-serif;
+      display: flex;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--g1);
+      border-right: 1px solid var(--bd);
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: 100vh;
+      z-index: 100
+    }
+
+    .logo {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--wht);
+      margin-bottom: 40px;
+      text-decoration: none
+    }
+
+    .logo b {
+      color: var(--lime)
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      color: var(--tx2);
+      text-decoration: none;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      transition: all 0.2s;
+      font-weight: 600
+    }
+
+    .nav-item:hover {
+      background: rgba(32, 201, 151, 0.05);
+      color: var(--lime)
+    }
+
+    .nav-item.active {
+      background: var(--lime);
+      color: var(--blk)
+    }
+
+    .nav-item i {
+      font-size: 18px
+    }
+
+    /* MAIN */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 40px;
+      max-width: calc(100vw - var(--sidebar-w))
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px
+    }
+
+    .h-title h1 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--wht)
+    }
+
+    .h-title p {
+      font-size: 14px;
+      color: var(--mt)
+    }
+
+    /* STATS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px
+    }
+
+    .stat-card {
+      background: var(--g2);
+      border: 1px solid var(--bd);
+      padding: 24px;
+      border-radius: 20px;
+      transition: transform 0.2s
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(32, 201, 151, 0.3)
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--mt);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .stat-val {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--wht);
+      margin-bottom: 8px
+    }
+
+    .stat-change {
+      font-size: 12px;
+      font-weight: 600
+    }
+
+    .stat-change.up {
+      color: var(--lime)
+    }
+
+    /* TABLE */
+    .table-container {
+      background: var(--g2);
+      border: 1px solid var(--bd);
+      border-radius: 24px;
+      overflow: hidden;
+      max-width: 100%;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+    }
+
+    .table-header {
+      padding: 24px 30px;
+      border-bottom: 1px solid var(--bd);
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+    .table-header h2 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 18px;
+      color: var(--wht)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th {
+      text-align: left;
+      padding: 16px 30px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--mt);
+      border-bottom: 1px solid var(--bd)
+    }
+
+    td {
+      padding: 18px 30px;
+      font-size: 14px;
+      color: var(--tx);
+      border-bottom: 1px solid var(--bd)
+    }
+
+    tr:hover {
+      background: rgba(255, 255, 255, 0.02)
+    }
+
+    .status {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase
+    }
+
+    .status.paid {
+      background: rgba(32, 201, 151, 0.1);
+      color: var(--lime)
+    }
+
+    .status.pending {
+      background: rgba(32, 201, 151, 0.15);
+      color: var(--lime)
+    }
+
+    .action-btn {
+      background: transparent;
+      border: 1px solid var(--bd);
+      color: var(--tx2);
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s
+    }
+
+    .action-btn:hover {
+      border-color: var(--lime);
+      color: var(--lime)
+    }
+
+    .visit-badge {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      color: var(--lime);
+      font-size: 13px;
+      border: 1px solid var(--bd);
+    }
+
+    .method-tag {
+      font-size: 12px;
+      color: var(--tx2);
+      background: var(--g1);
+      padding: 3px 8px;
+      border-radius: 5px;
+      border: 1px solid var(--bd);
+    }
+
+    /* Mobile / narrow: drawer nav + scrollable tables */
+    .sidebar-scrim {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        left: -100%;
+        top: 0;
+        transition: left 0.3s ease;
+        width: min(280px, 85vw);
+        box-shadow: none;
+        padding: 24px 16px;
+      }
+
+      .sidebar.open {
+        left: 0;
+        box-shadow: 12px 0 40px rgba(0, 0, 0, 0.45);
+      }
+
+      .sidebar-scrim {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 99;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(2px);
+      }
+
+      .sidebar.open ~ .sidebar-scrim {
+        display: block;
+      }
+
+      .main {
+        margin-left: 0;
+        padding: 16px;
+        padding-top: 68px;
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+        max-width: 100%;
+        width: 100%;
+      }
+
+      .ham {
+        display: flex !important;
+        top: max(16px, env(safe-area-inset-top));
+        right: max(16px, env(safe-area-inset-right));
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .h-title h1 {
+        font-size: 1.35rem;
+        line-height: 1.25;
+      }
+
+      .h-title p {
+        font-size: 13px;
+      }
+
+      .h-actions {
+        width: 100%;
+      }
+
+      .h-actions .action-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 16px;
+        min-height: 44px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+
+      .stat-card {
+        padding: 18px;
+      }
+
+      .stat-val {
+        font-size: 26px;
+      }
+
+      .table-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 18px 16px;
+      }
+
+      .table-scroll table {
+        min-width: 640px;
+      }
+
+      th,
+      td {
+        padding: 12px 14px;
+        font-size: 13px;
+      }
+
+      th {
+        padding-top: 14px;
+        padding-bottom: 14px;
+        white-space: nowrap;
+      }
+
+      .action-btn {
+        min-height: 40px;
+        padding: 8px 10px;
+        white-space: nowrap;
+      }
+
+      .modal {
+        padding: 28px 20px 24px;
+        border-radius: 20px;
+        margin: auto;
+        max-height: calc(100vh - 24px);
+        overflow-y: auto;
+      }
+
+      .modal.modal-wide {
+        padding: 22px 16px 20px;
+        max-width: calc(100vw - 16px);
+      }
+
+      .modal-wide .modal-body-scroll {
+        max-height: min(55vh, 420px);
+      }
+
+      .m-title {
+        font-size: 1.15rem;
+        padding-right: 36px;
+      }
+
+      .m-close {
+        top: 16px;
+        right: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main {
+        padding: 12px;
+        padding-top: 64px;
+      }
+
+      .table-scroll table {
+        min-width: 580px;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+    }
+
+    .ham {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      z-index: 201;
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--g1);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--bd);
+    }
+
+    .ham span {
+      width: 20px;
+      height: 1.5px;
+      background: var(--tx);
+      display: block;
+    }
+
+    /* MODAL */
+    .modal-ov {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal {
+      background: var(--g1);
+      border: 1px solid var(--bd);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 500px;
+      padding: 40px;
+      position: relative;
+      animation: modalIn 0.3s ease-out;
+    }
+
+    .modal.modal-wide {
+      max-width: 640px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      padding: 32px 36px;
+    }
+
+    .modal-wide .modal-body-scroll {
+      overflow-y: auto;
+      flex: 1;
+      margin-right: -8px;
+      padding-right: 8px;
+      max-height: min(68vh, 520px);
+    }
+
+    .det-row.det-row-block {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+    }
+
+    .det-row.det-row-block .det-val {
+      text-align: left;
+      font-weight: 600;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    @keyframes modalIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .m-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: var(--mt);
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .m-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 25px;
+      color: var(--wht);
+    }
+
+    .det-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      font-size: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .det-lbl { color: var(--mt); font-weight: 600; }
+    .det-val { color: var(--tx); font-weight: 700; text-align: right; }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--g2);
+      border: 1px solid var(--bd);
+      padding: 12px 24px;
+      border-radius: 12px;
+      color: var(--wht);
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 9999;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+  </style>
+
+</head>
+
+<body>
+
+  <button class="ham" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </button>
+
+  <div class="sidebar">
+    <a href="../index.html" class="logo">Numero <b>Uno</b></a>
+    <nav>
+      <a href="javascript:void(0)" class="nav-item active" onclick="showSection('dashboard', this)"><span>📊 Dashboard</span></a>
+      <a href="javascript:void(0)" class="nav-item" onclick="showSection('leads', this)"><span>📋 Audit Leads</span></a>
+      <a href="javascript:void(0)" class="nav-item" onclick="showSection('payments', this)"><span>💳 Payments</span></a>
+      <a href="javascript:void(0)" class="nav-item" id="nav-settings" onclick="showSection('settings', this)"><span>⚙️ Settings</span></a>
+      <a href="#" class="nav-item" onclick="logout()" style="margin-top:auto;color:#FF5C5C"><span>🚪 Logout</span></a>
+    </nav>
+  </div>
+  <div class="sidebar-scrim" onclick="document.querySelector('.sidebar').classList.remove('open')" aria-hidden="true"></div>
+
+  <div class="main">
+    <div class="header">
+      <div class="h-title">
+        <h1 id="page-title">Welcome back, Admin</h1>
+        <p id="current-date"></p>
+      </div>
+      <div class="h-actions">
+        <button class="action-btn" onclick="location.reload()">🔄 Refresh Data</button>
+      </div>
+    </div>
+
+    <div id="dashboard-section">
+      <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Leads <span>📈</span></div>
+        <div class="stat-val" id="total-leads">124</div>
+        <div class="stat-change up">+12% this month</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Revenue Unlocked <span>💰</span></div>
+        <div class="stat-val" id="total-revenue">₹0</div>
+        <div class="stat-change up">+₹4,200 this week</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Website Visits <span>🌏</span></div>
+        <div class="stat-val" id="total-visits-stat">0</div>
+        <div class="stat-change up">Live counter</div>
+      </div>
+      </div>
+    </div>
+
+    <div id="leads-section" style="display:none">
+      <div class="table-container">
+      <div class="table-header">
+        <h2>Recent Audit Leads</h2>
+        <div style="font-size:12px;color:var(--mt)">Showing last 10 entries</div>
+      </div>
+      <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Business</th>
+            <th>Contact</th>
+            <th>Payment</th>
+            <th>Method</th>
+            <th>Status</th>
+            <th>View</th>
+            <th>Review</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="leads-body">
+          <!-- Demo Data -->
+          <tr>
+            <td><b>Smile Dental Clinic</b><br><small>Whitefield, Bangalore</small></td>
+            <td>Rajesh Kumar<br><small>+91 98765 43210</small></td>
+            <td><b>₹19,000</b></td>
+            <td><span class="method-tag">💳 BillDesk</span></td>
+            <td><span class="status paid">PAID</span></td>
+            <td><button class="action-btn" type="button" disabled title="Loads after refresh">View</button></td>
+            <td><button class="action-btn" type="button">Process</button></td>
+            <td><button class="action-btn" type="button">WA</button></td>
+          </tr>
+          <tr>
+            <td><b>FitLife Gym</b><br><small>Indiranagar, Bangalore</small></td>
+            <td>Anita Sharma<br><small>+91 87654 32109</small></td>
+            <td><b>₹0</b></td>
+            <td><span class="method-tag">—</span></td>
+            <td><span class="status pending">FREE</span></td>
+            <td><button class="action-btn" type="button" disabled title="Loads after refresh">View</button></td>
+            <td><button class="action-btn" type="button">Process</button></td>
+            <td><button class="action-btn" type="button">WA</button></td>
+          </tr>
+          <tr>
+            <td><b>Buraq Auto</b><br><small>HSR Layout, Bangalore</small></td>
+            <td>Mohammed Ali<br><small>+91 76543 21098</small></td>
+            <td><b>₹12,500</b></td>
+            <td><span class="method-tag">📱 UPI</span></td>
+            <td><span class="status paid">PAID</span></td>
+            <td><button class="action-btn" type="button" disabled title="Loads after refresh">View</button></td>
+            <td><button class="action-btn" type="button">Process</button></td>
+            <td><button class="action-btn" type="button">WA</button></td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      </div> <!-- table-container -->
+    </div> <!-- leads-section -->
+
+    <div id="payments-section" style="display:none">
+      <div class="table-container">
+        <div class="table-header">
+          <h2>Verified Payments</h2>
+          <div style="font-size:12px;color:var(--mt)">Only showing successful transactions</div>
+        </div>
+        <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Business</th>
+              <th>Customer</th>
+              <th>Amount</th>
+              <th>Method</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+
+          </thead>
+          <tbody id="payments-body"></tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="settings-section" style="display:none">
+      <div class="table-container" style="max-width:600px">
+        <div class="table-header">
+          <h2>Admin Profile Settings</h2>
+          <div style="font-size:12px;color:var(--mt)">Manage your credentials and contact info</div>
+        </div>
+        <div style="padding:30px">
+          <div style="margin-bottom:20px">
+            <label style="display:block;font-size:12px;font-weight:700;color:var(--mt);margin-bottom:8px;text-transform:uppercase">Full Name</label>
+            <input type="text" id="set-name" style="width:100%;background:var(--g1);border:1px solid var(--bd);padding:12px;border-radius:10px;color:var(--wht)">
+          </div>
+          <div style="margin-bottom:20px">
+            <label style="display:block;font-size:12px;font-weight:700;color:var(--mt);margin-bottom:8px;text-transform:uppercase">Email Address</label>
+            <input type="email" id="set-email" style="width:100%;background:var(--g1);border:1px solid var(--bd);padding:12px;border-radius:10px;color:var(--wht)">
+          </div>
+          <div style="margin-bottom:20px">
+            <label style="display:block;font-size:12px;font-weight:700;color:var(--mt);margin-bottom:8px;text-transform:uppercase">Phone Number</label>
+            <input type="text" id="set-phone" style="width:100%;background:var(--g1);border:1px solid var(--bd);padding:12px;border-radius:10px;color:var(--wht)">
+          </div>
+          <div style="margin-bottom:25px;padding-top:15px;border-top:1px solid var(--bd)">
+            <label style="display:block;font-size:12px;font-weight:700;color:var(--mt);margin-bottom:8px;text-transform:uppercase">Change Password</label>
+            <input type="password" id="set-pass" placeholder="Enter new password (optional)" style="width:100%;background:var(--g1);border:1px solid var(--bd);padding:12px;border-radius:10px;color:var(--wht)">
+          </div>
+          <button class="action-btn" onclick="saveSettings()" style="background:var(--lime);color:var(--blk);font-weight:800;padding:12px 24px;border:none">Save All Settings</button>
+          <div id="set-msg" style="margin-top:15px;font-size:13px;font-weight:600"></div>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- main -->
+  
+  <!-- PAYMENT DETAILS MODAL -->
+  <div id="p-modal" class="modal-ov">
+    <div id="p-modal-box" class="modal">
+      <button class="m-close" onclick="closeModal()">✕</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+
+  <script>
+    // ADMIN AUTH CHECK
+    if (sessionStorage.getItem('adminAuth') !== 'true') {
+      window.location.href = '../login.html';
+    }
+
+    function showSection(id, el) {
+      document.getElementById('dashboard-section').style.display = id === 'dashboard' ? 'block' : 'none';
+      document.getElementById('leads-section').style.display = id === 'leads' ? 'block' : 'none';
+      document.getElementById('payments-section').style.display = id === 'payments' ? 'block' : 'none';
+      document.getElementById('settings-section').style.display = id === 'settings' ? 'block' : 'none';
+      
+      const adminName = getAdmin().name || 'Admin';
+      const titles = { dashboard: 'Welcome back, ' + adminName, leads: 'Audit Leads', payments: 'Recent Payments', settings: 'Settings' };
+      document.getElementById('page-title').textContent = titles[id] || 'Admin Panel';
+
+      
+      if (id === 'settings') loadAdminDetails();
+
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+
+    function logout() {
+      sessionStorage.removeItem('adminAuth');
+      window.location.href = '../login.html';
+    }
+
+    // Close sidebar when clicking menu items on mobile
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        if (window.innerWidth <= 900) {
+          document.querySelector('.sidebar').classList.remove('open');
+        }
+      });
+    });
+
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    const ADMIN_KEY = 'NUMER_ADMIN_CONFIG';
+    function getAdmin() {
+      const def = { username: 'admin', password: 'numero-uno', name: 'Admin', email: 'yogeshyogi2707@gmail.com', phone: '9632091371' };
+      const saved = localStorage.getItem(ADMIN_KEY);
+      return saved ? JSON.parse(saved) : def;
+    }
+
+
+    function loadAdminDetails() {
+      const a = getAdmin();
+      document.getElementById('set-name').value = a.name;
+      document.getElementById('set-email').value = a.email;
+      document.getElementById('set-phone').value = a.phone;
+      document.getElementById('set-pass').value = ''; 
+    }
+
+    function saveSettings() {
+      const a = getAdmin();
+      const newName = document.getElementById('set-name').value.trim();
+      const newEmail = document.getElementById('set-email').value.trim();
+      const newPhone = document.getElementById('set-phone').value.trim();
+      const newPass = document.getElementById('set-pass').value.trim();
+      const msg = document.getElementById('set-msg');
+
+      if (!newName || !newEmail) {
+        msg.style.color = '#FF5C5C';
+        msg.textContent = '❌ Name and Email are required.';
+        return;
+      }
+
+      a.name = newName;
+      a.email = newEmail;
+      a.phone = newPhone;
+      if (newPass) a.password = newPass;
+
+      localStorage.setItem(ADMIN_KEY, JSON.stringify(a));
+      msg.style.color = 'var(--lime)';
+      msg.textContent = '✅ Settings saved successfully!';
+      setTimeout(() => msg.textContent = '', 3000);
+    }
+
+    const STORAGE_KEY = 'NUMER_LEADS_DATA';
+    /* Keep the same URL in ../ai-Audit.html (MAIL_GATEWAY_URL) so paid checkouts auto-email. */
+    const MAIL_GATEWAY_URL = 'https://script.google.com/macros/s/AKfycbxZ-e45iZIfDtysLk76JGhlEUkrqsWipdVKns_jn0_v-fpE4NnNYSj5fXPSO_cS4N1m/exec';
+ // PASTE YOUR URL HERE
+
+
+    function seedDemoData() {
+      if (localStorage.getItem(STORAGE_KEY)) return;
+      const demoData = [
+        { id: 1, name: 'Rajesh Kumar', phone: '9876543210', bizName: 'Smile Dental Clinic', city: 'Whitefield, Bangalore', score: 32, amount: 190, method: '💳 Razorpay', status: 'PAID', visits: 56 },
+        { id: 2, name: 'Anita Sharma', phone: '8765432109', bizName: 'FitLife Gym', city: 'Indiranagar, Bangalore', score: 58, amount: 0, method: '—', status: 'FREE', visits: 31 },
+        { id: 3, name: 'Mohammed Ali', phone: '7654321098', bizName: 'Buraq Auto', city: 'HSR Layout, Bangalore', score: 24, amount: 190, method: '📱 UPI', status: 'PAID', visits: 14 }
+      ];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(demoData));
+    }
+
+    function loadLeads() {
+      seedDemoData();
+      const leads = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const leadsBody = document.getElementById('leads-body');
+      
+      // Update Stats
+      document.getElementById('total-leads').textContent = leads.length;
+      
+      const revenue = leads.reduce((sum, l) => sum + (parseInt(l.amount) || 0), 0);
+      document.getElementById('total-revenue').textContent = '₹' + revenue.toLocaleString('en-IN');
+
+      const totalVisits = localStorage.getItem('total_visits') || 0;
+      document.getElementById('total-visits-stat').textContent = totalVisits;
+
+      // Render Table
+      if (leads.length === 0) {
+        leadsBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--mt)">No leads yet.</td></tr>';
+        return;
+      }
+
+      const displayLeads = [...leads].reverse().slice(0, 10);
+      leadsBody.innerHTML = displayLeads.map(l => `
+        <tr>
+          <td><b>${l.bizName || '—'}</b><br><small style="color:var(--lime)">${l.bizType || '—'}</small><br><small>${l.city || 'Bangalore'}</small></td>
+          <td>${l.name}<br><small>${l.phone}</small><br><small>${l.email || '—'}</small></td>
+          <td><b>₹${(l.amount || 0).toLocaleString('en-IN')}</b></td>
+          <td><span class="method-tag">${l.method || '—'}</span></td>
+          <td><span class="status ${l.status === 'PAID' ? 'paid' : 'pending'}">${l.status}</span></td>
+          <td><button class="action-btn" title="Full form details" onclick="viewLeadDetails(${l.id})">View</button></td>
+          <td>${l.auditMailSent ? `<button type="button" class="action-btn" title="Mail already sent — open for preview or details" onclick="reviewLead(${l.id})" style="border-color:var(--lime);color:var(--lime);opacity:.9">Proceed</button>` : `<button class="action-btn" style="border-color:var(--lime);color:var(--lime)" onclick="reviewLead(${l.id})">Process</button>`}</td>
+          <td><button class="action-btn" onclick="window.open('https://wa.me/${l.phone.replace(/\D/g,'')}')">WA</button></td>
+        </tr>
+      `).join('');
+
+
+      // Render Payments View
+      const paymentsBody = document.getElementById('payments-body');
+      const paidLeads = leads.filter(l => l.status === 'PAID').reverse();
+      
+      if (paidLeads.length === 0) {
+        paymentsBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--mt)">No payments recorded yet.</td></tr>';
+      } else {
+        paymentsBody.innerHTML = paidLeads.map(l => `
+          <tr>
+            <td><b>${l.bizName}</b><br><small style="color:var(--lime)">${l.bizType || '—'}</small><br><small>${l.city || 'Bangalore'}</small></td>
+            <td>${l.name}<br><small>${l.phone}</small></td>
+            <td><b style="color:var(--lime)">₹${(l.amount || 0).toLocaleString('en-IN')}</b></td>
+            <td><span class="method-tag">${l.method}</span></td>
+            <td><small>${new Date(l.date).toLocaleDateString()}</small></td>
+            <td><span class="status paid">SUCCESS</span></td>
+            <td><button class="action-btn" onclick="viewPaymentDetails(${l.id})">View</button></td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function escapeHtml(s) {
+      if (s === null || s === undefined) return '—';
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function parseLeadPayload(l) {
+      if (!l || !l.payload) return null;
+      try {
+        const json = decodeURIComponent(escape(atob(l.payload)));
+        return JSON.parse(json);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    const LEAD_DETAIL_FIELDS = [
+      ['bizName', 'Business name'],
+      ['bizType', 'Business type'],
+      ['bizEmail', 'Business email'],
+      ['bizCity', 'City / location'],
+      ['website', 'Website'],
+      ['bizAge', 'Business age'],
+      ['ig', 'Instagram'],
+      ['fb', 'Facebook'],
+      ['gmb', 'Google Business'],
+      ['goal', 'Goal'],
+      ['enquiries', 'Monthly enquiries'],
+      ['budget', 'Marketing budget'],
+      ['timeline', 'Timeline'],
+      ['context', 'Additional context'],
+      ['leadName', 'Contact name (form)'],
+      ['leadPhone', 'WhatsApp (form)'],
+      ['calltime', 'Preferred call time']
+    ];
+
+    function viewLeadDetails(id) {
+      const leads = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const l = leads.find(item => item.id == id);
+      if (!l) return;
+
+      const box = document.getElementById('p-modal-box');
+      box.classList.add('modal-wide');
+
+      const p = parseLeadPayload(l);
+      const shown = new Set();
+
+      const rows = [];
+
+      rows.push(['Captured', (l.date ? new Date(l.date).toLocaleString('en-IN') : '—') + ' · ID ' + escapeHtml(l.id)]);
+      rows.push(['Lead status', escapeHtml(l.status) + ' · ₹' + (parseInt(l.amount, 10) || 0).toLocaleString('en-IN')]);
+      rows.push(['Audit score', escapeHtml(l.score)]);
+      shown.add('date'); shown.add('id'); shown.add('status'); shown.add('amount'); shown.add('score');
+
+      LEAD_DETAIL_FIELDS.forEach(([key, label]) => {
+        let val = p && p[key] !== undefined && p[key] !== '' ? p[key] : l[key];
+        if (key === 'leadName' && (!val || val === '—') && l.name) val = l.name;
+        if (key === 'leadPhone' && (!val || val === '—') && l.phone) val = l.phone;
+        if (key === 'bizEmail' && (!val || val === '—') && l.email) val = l.email;
+        if (key === 'bizCity' && (!val || val === '—') && l.city) val = l.city;
+        if (val === undefined || val === '') val = null;
+        if (typeof val === 'boolean') val = val ? 'Yes' : 'No';
+        rows.push([label, val != null ? escapeHtml(val) : '—']);
+        shown.add(key);
+      });
+
+      if (l.notes) {
+        rows.push(['Notes', escapeHtml(l.notes)]);
+        shown.add('notes');
+      }
+
+      if (p && typeof p === 'object') {
+        const skipExtraKeys = new Set(['igNA', 'fbNA', 'gmbNA']);
+        Object.keys(p).forEach((k) => {
+          if (shown.has(k) || k === 'payload' || skipExtraKeys.has(k)) return;
+          const v = p[k];
+          if (v === undefined || v === '' || typeof v === 'object') return;
+          rows.push([k.replace(/([A-Z])/g, ' $1').replace(/^./, (s) => s.toUpperCase()).trim(), escapeHtml(v)]);
+        });
+      }
+
+      ['name', 'email', 'phone', 'city'].forEach((k) => {
+        if (!l[k] || l[k] === '—') return;
+        if (k === 'name' && p && p.leadName) return;
+        if (k === 'phone' && p && p.leadPhone) return;
+        if (k === 'email' && p && p.bizEmail) return;
+        if (k === 'city' && p && p.bizCity) return;
+        const lbl = { name: 'Contact name (saved)', email: 'Email (saved)', phone: 'Phone (saved)', city: 'City (saved)' }[k];
+        rows.push([lbl, escapeHtml(l[k])]);
+      });
+
+      const inner = rows.map(([lbl, val]) => {
+        const block = String(val).length > 60 || (val && val.indexOf('\n') >= 0);
+        return `<div class="det-row${block ? ' det-row-block' : ''}"><span class="det-lbl">${lbl}</span><span class="det-val">${val}</span></div>`;
+      }).join('');
+
+      const html = `
+        <div class="m-title">Lead details</div>
+        <p style="font-size:13px;color:var(--mt);margin:-12px 0 16px">${escapeHtml(l.bizName || 'Lead')} — everything stored from the form</p>
+        <div class="modal-body-scroll">${inner}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px">
+          <button type="button" class="action-btn" onclick="reviewLead(${l.id})">${l.auditMailSent ? 'Review… (mail sent)' : 'Process…'}</button>
+          <button type="button" class="action-btn" style="background:var(--lime);color:var(--blk);font-weight:800;border:none" onclick="closeModal()">Close</button>
+        </div>
+      `;
+
+      document.getElementById('modal-content').innerHTML = html;
+      document.getElementById('p-modal').style.display = 'flex';
+    }
+
+    /** Same base64 rules as Approve & Mail: use stored payload or build minimal D from lead row. */
+    function resolveLeadPayloadBase64(l) {
+      if (!l) return '';
+      if (l.payload && String(l.payload).trim().length > 0) return l.payload;
+      const fallbackD = {
+        bizName: l.bizName || 'Unknown Business',
+        bizType: l.bizType || 'Business',
+        bizEmail: l.email || l.bizEmail || '',
+        leadName: l.name || 'Valued Customer',
+        leadPhone: l.phone || '',
+        bizCity: l.city || 'Bangalore, Karnataka',
+        calltime: l.calltime || ''
+      };
+      try {
+        return btoa(unescape(encodeURIComponent(JSON.stringify(fallbackD))));
+      } catch (e) {
+        return '';
+      }
+    }
+
+    /** Avoids huge / fragile ?d= URLs (truncation, encoding). Same-origin localStorage + short query. */
+    function openAiAuditPreviewByLeadId(id) {
+      const leads = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const l = leads.find(item => item.id == id);
+      if (!l) {
+        alert('Lead not found.');
+        return;
+      }
+      const payload = resolveLeadPayloadBase64(l);
+      if (!payload) {
+        alert('Could not build report data for this lead.');
+        return;
+      }
+      try {
+        localStorage.setItem('NUMER_AUDIT_PREVIEW_TMP', payload);
+        const u = new URL('../ai-Audit.html', window.location.href);
+        u.searchParams.set('preview', '1');
+        const w = window.open(u.href, '_blank');
+        if (!w) alert('Popup blocked — allow popups for this site to preview.');
+        else showToast('Opening audit preview…');
+      } catch (e) {
+        alert('Preview failed: ' + (e && e.message ? e.message : e));
+      }
+    }
+
+    function reviewLead(id) {
+      const leads = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const l = leads.find(item => item.id == id);
+      if (!l) return;
+
+      document.getElementById('p-modal-box').classList.remove('modal-wide');
+
+      const alreadyMailed = l.auditMailSent === true;
+      const mailedWhen = l.auditMailedAt
+        ? new Date(l.auditMailedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+        : '';
+
+      const pRev = parseLeadPayload(l);
+      const callTimeRaw = (pRev && pRev.calltime) || l.calltime || '';
+      const callTimeRow = callTimeRaw
+        ? `<div class="det-row"><span class="det-lbl">Preferred call time:</span><span class="det-val">${escapeHtml(String(callTimeRaw))}</span></div>`
+        : '';
+
+      const actionsHtml = alreadyMailed
+        ? `<div style="padding:14px;background:rgba(32,201,151,0.1);border:1px solid var(--bd);border-radius:10px;margin-top:8px;font-size:13px;color:var(--tx);line-height:1.5">
+            ✅ <b>Audit report already sent.</b>${mailedWhen ? ` Emailed on <b style="color:var(--lime)">${mailedWhen}</b>.` : ''} You can only send once per lead.
+          </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;">
+          <button type="button" class="action-btn" onclick="openAiAuditPreviewByLeadId(${l.id})" style="background:rgba(255,255,255,0.05); border-color:var(--mt); color:var(--wht)">👁️ Preview Report</button>
+          <button type="button" class="action-btn" disabled style="opacity:.55;cursor:not-allowed;border-color:var(--mt);color:var(--mt);font-weight:700">✅ Mail already sent</button>
+        </div>
+        <button type="button" class="action-btn" disabled style="width:100%; margin-top:10px; opacity:.45;cursor:not-allowed;border-color:var(--mt);color:var(--mt)">❌ Reject Lead</button>`
+        : `<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px;">
+          <button type="button" class="action-btn" onclick="openAiAuditPreviewByLeadId(${l.id})" style="background:rgba(255,255,255,0.05); border-color:var(--mt); color:var(--wht)">👁️ Preview Report</button>
+          <button type="button" class="action-btn" onclick="approveLead(${l.id})" style="background:var(--lime); color:var(--blk); font-weight:800; border:none">✅ Approve & Mail</button>
+        </div>
+        <button type="button" class="action-btn" onclick="rejectLead(${l.id})" style="width:100%; margin-top:10px; border-color:#FF5C5C; color:#FF5C5C">❌ Reject Lead</button>`;
+
+      const html = `
+        <div class="m-title">Review & Process Lead</div>
+        <div style="font-size:11px; color:var(--mt); margin-bottom:15px; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid var(--bd)">
+          <b>Approve &amp; Mail</b> opens a new tab that builds the PDF and sends it via your <b>Google Apps Script</b> mail gateway. <b>Paid</b> customers usually get that email automatically after checkout, so this is mainly for resends, failed deliveries, or older leads. The script must be deployed as <b>Anyone</b> can access and must accept PDF attachments in JSON.
+        </div>
+        
+        <div class="det-row"><span class="det-lbl">Business:</span><span class="det-val">${l.bizName} (${l.bizType || '—'})</span></div>
+        <div class="det-row"><span class="det-lbl">Owner:</span><span class="det-val">${l.name}</span></div>
+
+
+        <div class="det-row"><span class="det-lbl">Email:</span><span class="det-val" style="color:var(--lime)">${l.email || '—'}</span></div>
+        <div class="det-row"><span class="det-lbl">Contact:</span><span class="det-val">+91 ${l.phone}</span></div>
+        ${callTimeRow}
+        <div class="det-row" style="margin-bottom:20px;"><span class="det-lbl">Payment Status:</span><span class="det-val">${l.status} (₹${l.amount})</span></div>
+
+        ${actionsHtml}
+      `;
+      
+      document.getElementById('modal-content').innerHTML = html;
+      document.getElementById('p-modal').style.display = 'flex';
+    }
+
+    async function approveLead(id) {
+       const leads = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+       const l = leads.find(item => item.id == id);
+       if (!l) return;
+
+       if (l.auditMailSent === true) {
+         showToast('You already sent the audit report for this lead. It can only be mailed once.', true);
+         return;
+       }
+
+       if (MAIL_GATEWAY_URL === 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
+         showToast("❌ Setup Required: Paste your Google Script URL in the code (Line 676).", true);
+         return;
+       }
+
+       const payload = resolveLeadPayloadBase64(l);
+       if (!payload) {
+         showToast('Could not build report data for this lead.', true);
+         return;
+       }
+
+       try {
+         localStorage.setItem('NUMER_MAIL_GATEWAY_TMP', MAIL_GATEWAY_URL);
+       } catch (e) { /* private mode */ }
+
+       const reportU = new URL('../ai-Audit.html', window.location.href);
+       reportU.searchParams.set('d', payload);
+       reportU.searchParams.set('autoSend', '1');
+       reportU.searchParams.set('leadId', String(id));
+       const reportLink = reportU.href;
+
+       
+       showToast("🚀 Opening PDF Generator Worker...");
+       
+       // Open the report in a new tab which will handle the PDF generation and sending
+       const worker = window.open(reportLink, '_blank');
+       
+       if (worker) {
+         showToast("✅ Worker started. PDF will be sent automatically.");
+         closeModal();
+       } else {
+         showToast("❌ Popup blocked! Please allow popups for this site.", true);
+       }
+    }
+
+
+
+    async function rejectLead(id) {
+       const leads = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+       const l = leads.find(item => item.id == id);
+       if (!l) return;
+
+       if (MAIL_GATEWAY_URL === 'YOUR_GOOGLE_SCRIPT_URL_HERE') {
+         showToast("❌ Setup Required: Paste your Script URL in settings.", true);
+         return;
+       }
+
+       showToast("Sending rejection...");
+       const message = `Hi ${l.name},
+
+Thank you for your interest in our AI Digital Audit. Unfortunately, we are unable to process your audit request at this time. 
+
+If a payment was made, our team will contact you for a refund manually within 24 hours.
+
+Regards,
+Numero Uno Marketing`;
+
+       try {
+         const res = await fetch(MAIL_GATEWAY_URL, {
+           method: 'POST',
+           body: JSON.stringify({
+             to: l.email,
+             subject: `Update regarding your Audit for ${l.bizName}`,
+             body: message
+           })
+         });
+         const result = await res.json();
+         if (result.success) {
+           showToast("✅ Rejection Sent Successfully");
+           closeModal();
+         } else {
+           showToast("❌ Gateway error.", true);
+         }
+       } catch (err) {
+         showToast("❌ Error sending rejection.", true);
+       }
+    }
+
+    function showToast(msg, isError = false) {
+      let t = document.getElementById('admin-toast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'admin-toast';
+        t.className = 'toast';
+        document.body.appendChild(t);
+      }
+      t.innerHTML = (isError ? '❌ ' : '✨ ') + msg;
+      t.style.borderColor = isError ? '#FF5C5C' : 'var(--bd)';
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+
+    function closeModal() {
+      document.getElementById('p-modal').style.display = 'none';
+      document.getElementById('p-modal-box').classList.remove('modal-wide');
+    }
+
+    // Refresh function
+    document.querySelector('.action-btn[onclick="location.reload()"]').onclick = function(e) {
+      e.preventDefault();
+      loadLeads();
+      const btn = this;
+      const oldTxt = btn.innerHTML;
+      btn.innerHTML = 'Refreshed ✓';
+      setTimeout(() => btn.innerHTML = oldTxt, 2000);
+    };
+
+    function viewPaymentDetails(id) {
+      const leads = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const l = leads.find(item => item.id == id);
+      if (!l) return;
+
+      document.getElementById('p-modal-box').classList.remove('modal-wide');
+
+      const html = `
+        <div class="m-title">Payment Details</div>
+        <div class="det-row"><span class="det-lbl">Business:</span><span class="det-val">${l.bizName} (${l.bizType || '—'})</span></div>
+        <div class="det-row"><span class="det-lbl">Location:</span><span class="det-val">${l.city || 'Bangalore'}</span></div>
+        <div class="det-row"><span class="det-lbl">Customer:</span><span class="det-val">${l.name}</span></div>
+        <div class="det-row"><span class="det-lbl">Phone:</span><span class="det-val">+91 ${l.phone}</span></div>
+        <div class="det-row"><span class="det-lbl">Amount Paid:</span><span class="det-val" style="color:var(--lime)">₹${(l.amount || 0).toLocaleString('en-IN')}</span></div>
+        <div class="det-row"><span class="det-lbl">Method:</span><span class="det-val">${l.method}</span></div>
+        <div class="det-row"><span class="det-lbl">Date:</span><span class="det-val">${new Date(l.date).toLocaleString()}</span></div>
+
+        <div class="det-row" style="border:none"><span class="det-lbl">Status:</span><span class="det-val">VERIFIED ✓</span></div>
+        <button class="action-btn" onclick="closeModal()" style="width:100%;margin-top:20px;padding:12px">Close Details</button>
+      `;
+      
+      document.getElementById('modal-content').innerHTML = html;
+      document.getElementById('p-modal').style.display = 'flex';
+    }
+
+    window.addEventListener('storage', function (e) {
+      if (e.key === STORAGE_KEY && e.newValue != null) {
+        loadLeads();
+      }
+    });
+
+    function initDashboard() {
+      const a = getAdmin();
+      const adminName = a.name || 'Admin';
+      document.getElementById('page-title').textContent = 'Welcome back, ' + adminName;
+      loadLeads();
+    }
+    initDashboard();
+
+    // Modal overlay click to close
+    window.onclick = function(e) {
+      const modal = document.getElementById('p-modal');
+      if (e.target == modal) closeModal();
+    }
+
+
+  </script>
+
+</body>
+
+</html>

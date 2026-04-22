@@ -1,0 +1,42 @@
+<?php
+/*
+ * BillDesk Payment Integration Template for Numero Uno Marketing
+ * -------------------------------------------------------------
+ * This script is intended to be used on a PHP-enabled server (like Hostinger).
+ * It handles the generation of the BillDesk request message and checksum.
+ * 
+ * Requirements:
+ * 1. BillDesk Merchant ID
+ * 2. BillDesk Security Id
+ * 3. BillDesk Checksum Key
+ */
+
+// 1. COLLECT DATA FROM POST
+$customer_name = $_POST['name'] ?? 'Customer';
+$customer_phone = $_POST['phone'] ?? '';
+$amount = "299.00";
+$order_id = "AUDIT_" . time(); // Generate a unique order ID
+$callback_url = "https://alphanumerouno.in/payment-success.html"; // Redirect here after payment
+
+// 2. BILLDESK CREDENTIALS (REPLACE WITH LIVE KEYS)
+$merchant_id = "YOUR_MERCHANT_ID";
+$security_id = "YOUR_SECURITY_ID";
+$checksum_key = "YOUR_CHECKSUM_KEY";
+
+// 3. GENERATE MESSAGE (PIPE SEPARATED)
+// Format: MerchantID|OrderID|NA|Amount|NA|NA|NA|Currency|NA|Type|SecurityID|NA|NA|Type|Item1|Item2|Item3|IP|Browser|NA|NA|CallbackURL
+$msg = "$merchant_id|$order_id|NA|$amount|NA|NA|NA|INR|NA|DIRECT|$security_id|NA|NA|F|Audit|Report|NA|NA|NA|NA|NA|$callback_url";
+
+// 4. GENERATE CHECKSUM
+$checksum = strtoupper(hash_hmac('sha256', $msg, $checksum_key));
+$final_msg = $msg . "|" . $checksum;
+
+// 5. REDIRECT TO BILLDESK
+$pg_url = "https://pgi.billdesk.com/pgidsk/PGIMerchantPayment"; // Live URL
+
+echo "<html><body onload='document.forms[0].submit()'>";
+echo "<form method='POST' action='$pg_url'>";
+echo "<input type='hidden' name='msg' value='$final_msg'>";
+echo "</form>";
+echo "Redirecting to BillDesk...</body></html>";
+?>
