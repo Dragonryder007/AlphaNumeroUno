@@ -15,8 +15,8 @@ const Razorpay = require('razorpay');
 
 // Trim whitespace/quotes on load — a single stray space in .env causes
 // "Authentication failed" from Razorpay with no obvious hint.
-const _rzpKeyId = String(process.env.RAZORPAY_KEY_ID || '').trim().replace(/^["']|["']$/g, '');
-const _rzpKeySecret = String(process.env.RAZORPAY_KEY_SECRET || '').trim().replace(/^["']|["']$/g, '');
+const _rzpKeyId = String(process.env.RAZORPAY_KEY_ID || '').trim().replace(/^['"]|['"]$/g, '');
+const _rzpKeySecret = String(process.env.RAZORPAY_KEY_SECRET || '').trim().replace(/^['"]|['"]$/g, '');
 process.env.RAZORPAY_KEY_ID = _rzpKeyId;
 process.env.RAZORPAY_KEY_SECRET = _rzpKeySecret;
 
@@ -31,6 +31,15 @@ if (_rzpKeyId && _rzpKeySecret) {
   console.log(`[razorpay] key_id=${_rzpKeyId} mode=${mode} secret_len=${_rzpKeySecret.length}`);
 } else {
   console.warn('[razorpay] WARNING: RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is missing in .env');
+}
+
+// Normalize Google Places API key (trim whitespace and strip surrounding quotes)
+const _googlePlacesKey = String(process.env.GOOGLE_PLACES_API_KEY || '').trim().replace(/^['"]|['"]$/g, '');
+process.env.GOOGLE_PLACES_API_KEY = _googlePlacesKey;
+if (_googlePlacesKey) {
+  console.log(`[google places] GOOGLE_PLACES_API_KEY present length=${_googlePlacesKey.length}`);
+} else {
+  console.warn('[google places] WARNING: GOOGLE_PLACES_API_KEY is missing in .env');
 }
 
 // In-memory session store for audit form data (before payment)
@@ -234,6 +243,9 @@ async function fetchGoogleData(businessName, city, businessType) {
       });
 
     const findData = await placesJson(findUrl);
+    if (findData && findData.status && findData.status !== 'OK') {
+      console.error(`[google places] findplace status=${findData.status} error_message=${findData.error_message || ''}`);
+    }
     if (findData.status === 'REQUEST_DENIED' && findData.error_message?.includes('Billing')) {
       console.error('CRITICAL: Google Places API Billing is NOT enabled. Competitor and Google data will be missing.');
       console.error('Please visit: https://console.cloud.google.com/billing to enable billing.');
@@ -258,6 +270,9 @@ async function fetchGoogleData(businessName, city, businessType) {
           key,
         });
       const detailData = await placesJson(detailUrl);
+      if (detailData && detailData.status && detailData.status !== 'OK') {
+        console.error(`[google places] details status=${detailData.status} error_message=${detailData.error_message || ''}`);
+      }
       if (detailData.status === 'OK' && detailData.result) {
         const r = detailData.result;
         placeName = r.name || placeName;
@@ -313,6 +328,9 @@ async function fetchGoogleData(businessName, city, businessType) {
       });
 
     const nearbyData = await placesJson(nearbyUrl);
+    if (nearbyData && nearbyData.status && nearbyData.status !== 'OK') {
+      console.error(`[google places] nearbysearch status=${nearbyData.status} error_message=${nearbyData.error_message || ''}`);
+    }
     let results = nearbyData.results || [];
 
     results = results.filter((r) => r.place_id && r.place_id !== placeId);
@@ -1147,7 +1165,18 @@ app.post('/api/email-audit-pdf', async (req, res) => {
       return res.status(400).json({ ok: false, error: 'PDF attachment size invalid' });
     }
 
-    const paid = await assertPaidAuditRequest(body);
+    // Allow a debug bypass when ENABLE_FREE_FALLBACK is enabled on the server.
+    // This lets developers test the full post-payment flow locally without a real Razorpay payment.
+    let paid;
+    const freeFallbackEnabled = String(process.env.ENABLE_FREE_FALLBACK || '').trim().toLowerCase() !== 'false';
+    const debugRequested = Boolean(body.debug || (req.headers && String(req.headers['x-debug'] || '').trim() === '1') || (req.query && (req.query.debug === '1' || req.query.debug === 'true')));
+    if (freeFallbackEnabled && debugRequested) {
+      console.log('email-audit-pdf: debug bypass active (ENABLE_FREE_FALLBACK=true) — skipping payment verification');
+      paid = { ok: true };
+    } else {
+      paid = await assertPaidAuditRequest(body);
+    }
+
     if (!paid.ok) {
       return res.status(403).json({ ok: false, error: paid.error });
     }
@@ -1367,6 +1396,32 @@ app.get('/api/razorpay-diag', async (_req, res) => {
     out.razorpay_error = err.message || 'Diag failed';
   }
   return res.json(out);
+});
+
+/**
+ * Places API diagnostic endpoint.
+ * Query params:
+ *   q - optional text query like "Taj Bangalore" or "Business Name|City"
+ */
+app.get('/api/places-diag', async (req, res) => {
+  try {
+    let q = String(req.query.q || '').trim();
+    if (!q) q = 'Taj Bangalore';
+    // allow "name|city" form
+    let businessName = q;
+    let city = '';
+    if (q.includes('|')) {
+      const parts = q.split('|').map(s => s.trim());
+      businessName = parts[0] || businessName;
+      city = parts[1] || '';
+    }
+
+    const googleData = await fetchGoogleData(businessName, city, 'other');
+    return res.json({ ok: true, query: q, googleData });
+  } catch (err) {
+    console.error('/api/places-diag', err && err.message ? err.message : err);
+    return res.status(500).json({ ok: false, error: err && err.message ? err.message : 'places diag failed' });
+  }
 });
 
 /**

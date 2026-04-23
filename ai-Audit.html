@@ -3797,6 +3797,10 @@
                   style="background:transparent;color:var(--mt);border:1px solid var(--bd);border-radius:8px;padding:8px 14px;font-size:12px;cursor:pointer">
                   Run payment diagnostics
                 </button>
+                <button type="button" onclick="runPlacesDiagnostics()"
+                  style="background:transparent;color:var(--mt);border:1px solid var(--bd);border-radius:8px;padding:8px 14px;font-size:12px;cursor:pointer">
+                  Run places diagnostics
+                </button>
                 <button type="button" onclick="runEmailDiagnostics()"
                   style="background:transparent;color:var(--mt);border:1px solid var(--bd);border-radius:8px;padding:8px 14px;font-size:12px;cursor:pointer">
                   Run email diagnostics
@@ -5035,6 +5039,29 @@
       out.textContent = lines.join('\n');
     }
 
+    async function runPlacesDiagnostics() {
+      const out = document.getElementById('rzp-diag-output');
+      if (!out) return;
+      out.style.display = 'block';
+      out.textContent = 'Running Places API diagnostics…';
+      const lines = [];
+      try {
+        const params = new URLSearchParams(window.location.search || '');
+        // allow custom query with ?places=Name|City
+        const q = params.get('places') || 'Taj Bangalore';
+        lines.push('GET /api/places-diag?q=' + encodeURIComponent(q));
+        const res = await fetch('/api/places-diag?q=' + encodeURIComponent(q)).then(r => r.json()).catch(e => ({ ok: false, error: e.message }));
+        lines.push(JSON.stringify(res, null, 2));
+        if (res && res.googleData && res.googleData.competitors) {
+          lines.push('Top competitors:');
+          (res.googleData.competitors || []).forEach(c => lines.push('- ' + (c.name || '—') + ' — ' + (c.reviews || 0) + ' reviews — ' + (c.rating || '—')));
+        }
+      } catch (e) {
+        lines.push('places-diag failed: ' + (e && e.message));
+      }
+      out.textContent = lines.join('\n');
+    }
+
     async function sendEmailDiagnosticTest() {
       const out = document.getElementById('rzp-diag-output');
       if (!out) return;
@@ -5089,6 +5116,29 @@
 
       setPayBtnEnabled(false);
       setPayStatus('Preparing secure checkout…');
+
+      // Debug bypass: allow developers to test the full post-payment flow
+      // by visiting the page with ?debug=1 or ?debug=true in the URL.
+      try {
+        const params = new URLSearchParams(window.location.search || '');
+        const isDebug = params.get('debug') === '1' || params.get('debug') === 'true' || params.get('debug') === 'yes';
+        if (isDebug) {
+          console.log('Debug mode: skipping Razorpay checkout and simulating successful payment');
+          setPayStatus('Debug mode: simulating payment success...');
+          // Save session (best-effort) then mark paid and run confirmation flow
+          try { await saveAuditSessionBeforePayment(); } catch (e) { /* ignore */ }
+          window.__lastRazorpayPayment = {
+            razorpay_payment_id: 'DEBUG_PAY_' + Date.now(),
+            razorpay_order_id: 'DEBUG_ORDER_' + Date.now(),
+            razorpay_signature: 'DEBUG_SIG'
+          };
+          isPaid = true;
+          confirmPayment();
+          return;
+        }
+      } catch (e) {
+        console.warn('Debug bypass check failed:', e && e.message);
+      }
 
       // Amount comes from the server (.env AUDIT_PRICE_PAISE) so it's always in sync
       // with what the server validates. Defaults to ₹299 if the config call fails.
@@ -5618,6 +5668,8 @@
         reader.readAsDataURL(pdfBlob);
       });
       const pay = (typeof window !== 'undefined' && window.__lastRazorpayPayment) || {};
+      const params = new URLSearchParams(window.location.search || '');
+      const isDebug = params.get('debug') === '1' || params.get('debug') === 'true' || params.get('debug') === 'yes';
       const url = String(apiBase || '').replace(/\/$/, '') + '/api/email-audit-pdf';
       const res = await fetch(url, {
         method: 'POST',
@@ -5632,7 +5684,8 @@
           bizName: D.bizName || '',
           razorpay_payment_id: pay.razorpay_payment_id || '',
           razorpay_order_id: pay.razorpay_order_id || '',
-          razorpay_signature: pay.razorpay_signature || ''
+          razorpay_signature: pay.razorpay_signature || '',
+          debug: isDebug
         })
       });
       const raw = await res.text();
