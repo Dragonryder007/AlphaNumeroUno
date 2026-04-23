@@ -5093,7 +5093,8 @@
       // Amount comes from the server (.env AUDIT_PRICE_PAISE) so it's always in sync
       // with what the server validates. Defaults to ₹299 if the config call fails.
       const cfg = await getRazorpayConfig();
-      const amountPaise = (cfg && cfg.ok && Number(cfg.amount_paise)) ? Number(cfg.amount_paise) : 29900;
+      //const amountPaise = (cfg && cfg.ok && Number(cfg.amount_paise)) ? Number(cfg.amount_paise) : 29900;
+      const amountPaise = 100; // For testing, set to ₹1. Change to cfg value for production.
 
       try {
         // STEP 0: Save audit session before payment so webhook can act as a safety net
