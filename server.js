@@ -333,7 +333,28 @@ async function fetchGoogleData(businessName, city, businessType) {
     }
     let results = nearbyData.results || [];
 
+    // Remove the original place and any entries without a place_id
     results = results.filter((r) => r.place_id && r.place_id !== placeId);
+
+    // Prefer competitors that match the requested Google `type` or contain the business keyword in their name.
+    try {
+      const businessKeyword = String(businessType || '').toLowerCase();
+      const filtered = results.filter((r) => {
+        try {
+          const types = Array.isArray(r.types) ? r.types : [];
+          const hasTypeMatch = types.includes(googleType);
+          const nameMatch = r.name && r.name.toLowerCase().includes(businessKeyword) && businessKeyword.length > 2;
+          return hasTypeMatch || nameMatch;
+        } catch (e) {
+          return false;
+        }
+      });
+      if (filtered && filtered.length) {
+        results = filtered;
+      }
+    } catch (e) {
+      // ignore filtering errors and fall back to original results
+    }
 
     results.sort((a, b) => {
       const ta = a.user_ratings_total ?? 0;
