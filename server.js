@@ -317,21 +317,64 @@ async function fetchGoogleData(businessName, city, businessType) {
     }
 
     const googleType = normalizeGoogleType(businessType);
-    const nearbyUrl =
-      `${PLACES_BASE}/nearbysearch/json?` +
-      new URLSearchParams({
-        location: `${lat},${lng}`,
-        radius: '5000', // Smaller radius for "nearest" (5km)
-        type: googleType,
-        keyword: businessType, // Use the actual business type as a keyword for precision
-        key,
-      });
 
-    const nearbyData = await placesJson(nearbyUrl);
+    // Try a distance-ranked nearby search first (better for finding actual cafes/restaurants).
+    let nearbyData = null;
+    try {
+      if (businessType && businessType.trim()) {
+        const rankUrl = `${PLACES_BASE}/nearbysearch/json?` +
+          new URLSearchParams({
+            location: `${lat},${lng}`,
+            rankby: 'distance',
+            keyword: businessType,
+            key,
+          });
+        nearbyData = await placesJson(rankUrl);
+      }
+    } catch (e) {
+      console.warn('[google places] rankby=distance search failed:', e && e.message);
+    }
+
+    // Fallback to radius-based nearbysearch with type
+    if (!nearbyData || !Array.isArray(nearbyData.results) || !nearbyData.results.length) {
+      try {
+        const radius = 5000;
+        const nearbyUrl = `${PLACES_BASE}/nearbysearch/json?` +
+          new URLSearchParams({
+            location: `${lat},${lng}`,
+            radius: String(radius),
+            type: googleType,
+            keyword: businessType,
+            key,
+          });
+        nearbyData = await placesJson(nearbyUrl);
+      } catch (e) {
+        console.error('[google places] nearbysearch failed:', e && e.message);
+      }
+    }
+
+    // If still empty, try a Text Search which can be more flexible
+    if (!nearbyData || !Array.isArray(nearbyData.results) || !nearbyData.results.length) {
+      try {
+        const textQuery = `${businessType || ''} near ${businessName || city || ''}`.trim();
+        const textUrl = `${PLACES_BASE}/textsearch/json?` +
+          new URLSearchParams({
+            query: textQuery,
+            location: `${lat},${lng}`,
+            radius: '10000',
+            key,
+          });
+        nearbyData = await placesJson(textUrl);
+      } catch (e) {
+        console.warn('[google places] textsearch fallback failed:', e && e.message);
+      }
+    }
+
     if (nearbyData && nearbyData.status && nearbyData.status !== 'OK') {
       console.error(`[google places] nearbysearch status=${nearbyData.status} error_message=${nearbyData.error_message || ''}`);
     }
-    let results = nearbyData.results || [];
+
+    let results = (nearbyData && Array.isArray(nearbyData.results)) ? nearbyData.results : [];
 
     // Remove the original place and any entries without a place_id
     results = results.filter((r) => r.place_id && r.place_id !== placeId);
@@ -1263,32 +1306,60 @@ app.post('/api/email-audit-pdf', async (req, res) => {
  */
 app.post('/api/premium-audit', async (req, res) => {
   try {
+    // Start a background job to generate the premium audit and return a job id immediately.
     const D = normalizePremiumD(req.body || {});
     if (!D.bizName || !D.bizCity) {
-      return res.status(400).json({
-        ok: false,
-        error: 'bizName and bizCity are required',
-      });
+      return res.status(400).json({ ok: false, error: 'bizName and bizCity are required' });
     }
-    if (!process.env.ANTHROPIC_API_KEY && !ENABLE_FREE_FALLBACK) {
-      return res.status(503).json({
-        ok: false,
-        error:
-          'ANTHROPIC_API_KEY missing. Create Numer/.env from .env.example and restart the server.',
-      });
-    }
-    const report = await generatePremiumAuditReport(D);
-    return res.json({ ok: true, report });
+
+    // Create job id and enqueue
+    const jobId = 'job_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    premiumAuditJobs.set(jobId, { status: 'pending', createdAt: Date.now(), result: null, error: null });
+
+    (async () => {
+      try {
+        if (!process.env.ANTHROPIC_API_KEY && !ENABLE_FREE_FALLBACK) {
+          throw new Error('ANTHROPIC_API_KEY missing on server');
+        }
+        const report = await generatePremiumAuditReport(D);
+        premiumAuditJobs.set(jobId, { status: 'done', createdAt: Date.now(), result: report, error: null });
+      } catch (err) {
+        console.error('/api/premium-audit job error', err && err.message ? err.message : err);
+        premiumAuditJobs.set(jobId, { status: 'error', createdAt: Date.now(), result: null, error: err && err.message ? err.message : String(err) });
+      }
+    })();
+
+    return res.json({ ok: true, jobId });
   } catch (err) {
     console.error('/api/premium-audit', err);
-    return res.status(500).json({
-      ok: false,
-      error:
-        err.message ||
-        'Premium audit failed. Check API key, quota, and ANTHROPIC_MODEL.',
-    });
+    return res.status(500).json({ ok: false, error: err.message || 'Premium audit failed to start' });
   }
 });
+
+// In-memory job store for premium audits (simple, non-persistent)
+const premiumAuditJobs = new Map();
+
+// Endpoint to fetch job status/result
+app.get('/api/premium-audit-result', (req, res) => {
+  try {
+    const jobId = String(req.query.jobId || '').trim();
+    if (!jobId) return res.status(400).json({ ok: false, error: 'jobId is required' });
+    const job = premiumAuditJobs.get(jobId);
+    if (!job) return res.status(404).json({ ok: false, error: 'job not found' });
+    return res.json({ ok: true, jobId, status: job.status, result: job.result, error: job.error });
+  } catch (err) {
+    console.error('/api/premium-audit-result', err && err.message ? err.message : err);
+    return res.status(500).json({ ok: false, error: err && err.message ? err.message : 'failed' });
+  }
+});
+
+// Cleanup old jobs periodically (keep for 1 hour)
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, job] of premiumAuditJobs.entries()) {
+    if (now - job.createdAt > 60 * 60 * 1000) premiumAuditJobs.delete(id);
+  }
+}, 30 * 60 * 1000);
 
 app.post('/api/generate-audit', async (req, res) => {
   try {

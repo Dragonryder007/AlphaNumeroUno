@@ -5523,31 +5523,50 @@
     }
 
     async function fetchPremiumReportFromServer() {
+      // New: POST to start background job, then poll for results via /api/premium-audit-result
       const urls = resolvePremiumAuditUrls();
       if (!urls.length) return null;
       const payload = JSON.stringify(D);
-      const controller = new AbortController();
-      const to = setTimeout(function () { controller.abort(); }, 110000);
+
+      // Try each base URL to start a job
       for (let i = 0; i < urls.length; i++) {
         try {
-          const r = await fetch(urls[i], {
+          const startRes = await fetch(urls[i], {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: payload,
-            signal: controller.signal,
             mode: 'cors',
           });
-          if (!r.ok) continue;
-          const data = await r.json();
-          if (data && data.ok === true && data.report && typeof data.report === 'object') {
-            clearTimeout(to);
-            return data.report;
+          if (!startRes.ok) continue;
+          const startData = await startRes.json().catch(() => null);
+          if (!startData || !startData.ok || !startData.jobId) continue;
+
+          const jobId = startData.jobId;
+          const resultUrl = new URL('/api/premium-audit-result', window.location.origin).href + '?jobId=' + encodeURIComponent(jobId);
+
+          // Poll for result with timeout (10 minutes)
+          const deadline = Date.now() + 10 * 60 * 1000;
+          let attempt = 0;
+          while (Date.now() < deadline) {
+            try {
+              const r = await fetch(resultUrl, { method: 'GET', mode: 'cors' });
+              if (r.ok) {
+                const d = await r.json().catch(() => null);
+                if (d && d.ok) {
+                  if (d.status === 'done' && d.result) return d.result;
+                  if (d.status === 'error') throw new Error(d.error || 'Job error');
+                }
+              }
+            } catch (pollErr) {
+              console.warn('premium-audit poll', pollErr && pollErr.message ? pollErr.message : pollErr);
+            }
+            attempt++;
+            await new Promise((r) => setTimeout(r, Math.min(5000 + attempt * 2000, 20000)));
           }
         } catch (err) {
-          console.warn('premium-audit', urls[i], err && err.message ? err.message : err);
+          console.warn('premium-audit start', urls[i], err && err.message ? err.message : err);
         }
       }
-      clearTimeout(to);
       return null;
     }
 
