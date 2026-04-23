@@ -4721,8 +4721,7 @@
       if (n === 4) {
         // Save form data server-side (webhook safety net) before showing the pay button
         saveAuditSessionBeforePayment().catch(function (e) { console.warn('session save warn:', e && e.message); });
-        // Show test/live banner so the user knows which credentials to use
-        detectRazorpayMode().catch(function (e) { console.warn('mode detect warn:', e && e.message); });
+        // (mode banner removed) — Razorpay mode detection disabled
       }
     }
 
@@ -4942,48 +4941,7 @@
       if (subEl) subEl.textContent = 'Pay ' + txt + ' via UPI, card or net banking. Your report is unlocked instantly after payment confirmation.';
     }
 
-    async function detectRazorpayMode() {
-      const banner = document.getElementById('rzp-mode-banner');
-      if (!banner) return;
-      banner.style.display = 'none';
-      const c = await getRazorpayConfig();
-      if (c && c.ok && c.amount_paise) updatePriceLabels(c.amount_paise);
-      if (!c.ok) {
-        banner.style.display = 'block';
-        banner.style.background = 'rgba(255,92,92,.1)';
-        banner.style.border = '1px solid rgba(255,92,92,.4)';
-        banner.style.color = '#ffb3b3';
-        banner.innerHTML = '<strong>Razorpay not configured on server.</strong><br>' + (c.error || 'Server returned no key_id.') + ' — fix <code>.env</code> and restart Node.';
-        return;
-      }
-      const cheapPrice = Number(c.amount_paise) < 10000; // under ₹100 → looks like a test amount
-      const priceNote = cheapPrice
-        ? '<br><strong style="color:#ffd79a">⚠️ Test price: ₹' + Math.round(Number(c.amount_paise) / 100) + ' (AUDIT_PRICE_PAISE in .env).</strong> Set it back to <code>29900</code> before real customers see this page.'
-        : '';
-      if (c.mode === 'test') {
-        banner.style.display = 'block';
-        banner.style.background = 'rgba(255,170,51,.1)';
-        banner.style.border = '1px solid rgba(255,170,51,.4)';
-        banner.style.color = '#ffd79a';
-        banner.innerHTML =
-          '<strong>⚠️ Razorpay is in TEST MODE.</strong> Real UPI / cards will NOT work. Use test credentials:<br>' +
-          '• UPI: <code>success@razorpay</code><br>' +
-          '• Card: <code>4111 1111 1111 1111</code>, any future expiry, any CVV, OTP <code>1234</code><br>' +
-          'To accept real payments, put your live <code>rzp_live_...</code> keys in <code>.env</code> and restart Node.' + priceNote;
-      } else if (c.mode === 'live') {
-        banner.style.display = 'block';
-        banner.style.background = 'rgba(32,201,151,.08)';
-        banner.style.border = '1px solid rgba(32,201,151,.3)';
-        banner.style.color = '#8de5c4';
-        banner.innerHTML = '<strong>✓ Razorpay LIVE mode.</strong> Real payments will be charged.' + priceNote;
-      } else {
-        banner.style.display = 'block';
-        banner.style.background = 'rgba(255,92,92,.1)';
-        banner.style.border = '1px solid rgba(255,92,92,.4)';
-        banner.style.color = '#ffb3b3';
-        banner.innerHTML = '<strong>Unknown key format.</strong> RAZORPAY_KEY_ID in .env should start with <code>rzp_test_</code> or <code>rzp_live_</code>.';
-      }
-    }
+    
 
     async function runPaymentDiagnostics() {
       const out = document.getElementById('rzp-diag-output');
@@ -5143,8 +5101,7 @@
       // Amount comes from the server (.env AUDIT_PRICE_PAISE) so it's always in sync
       // with what the server validates. Defaults to ₹299 if the config call fails.
       const cfg = await getRazorpayConfig();
-      //const amountPaise = (cfg && cfg.ok && Number(cfg.amount_paise)) ? Number(cfg.amount_paise) : 29900;
-      const amountPaise = 100; // For testing, set to ₹1. Change to cfg value for production.
+      const amountPaise = (cfg && cfg.ok && Number(cfg.amount_paise)) ? Number(cfg.amount_paise) : 29900;
 
       try {
         // STEP 0: Save audit session before payment so webhook can act as a safety net
